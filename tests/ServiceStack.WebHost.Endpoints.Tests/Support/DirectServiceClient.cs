@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
+using System.Threading.Tasks;
 using ServiceStack.Common.Web;
 using ServiceStack.Service;
 using ServiceStack.ServiceClient.Web;
@@ -269,7 +270,12 @@ namespace ServiceStack.WebHost.Endpoints.Tests.Support
 			}
 		}
 
-		public void SetCredentials(string userName, string password)
+	    public Task<TResponse> SendAsync<TResponse>(IReturn<TResponse> request)
+	    {
+	        throw new NotImplementedException();
+	    }
+
+	    public void SetCredentials(string userName, string password)
 		{
 			throw new NotImplementedException();
 		}
@@ -284,12 +290,22 @@ namespace ServiceStack.WebHost.Endpoints.Tests.Support
 			throw new NotImplementedException();
 		}
 
-		public void DeleteAsync<TResponse>(string relativeOrAbsoluteUrl, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
+	    public Task<TResponse> GetAsync<TResponse>(IReturn<TResponse> request)
+	    {
+	        throw new NotImplementedException();
+	    }
+
+	    public void DeleteAsync<TResponse>(string relativeOrAbsoluteUrl, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
 		{
 			throw new NotImplementedException();
 		}
 
 	    public void DeleteAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
+	    {
+	        throw new NotImplementedException();
+	    }
+
+	    public Task<TResponse> DeleteAsync<TResponse>(IReturn<TResponse> request)
 	    {
 	        throw new NotImplementedException();
 	    }
@@ -304,6 +320,11 @@ namespace ServiceStack.WebHost.Endpoints.Tests.Support
 			throw new NotImplementedException();
 		}
 
+	    public Task<TResponse> PostAsync<TResponse>(IReturn<TResponse> request)
+	    {
+	        throw new NotImplementedException();
+	    }
+
 	    public void PutAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
 	    {
 	        throw new NotImplementedException();
@@ -313,6 +334,11 @@ namespace ServiceStack.WebHost.Endpoints.Tests.Support
 		{
 			throw new NotImplementedException();
 		}
+
+	    public Task<TResponse> PutAsync<TResponse>(IReturn<TResponse> request)
+	    {
+	        throw new NotImplementedException();
+	    }
 
 	    public void CustomMethodAsync<TResponse>(string httpVerb, IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
 	    {

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using ServiceStack.Common.Web;
 using ServiceStack.Service;
 using ServiceStack.ServiceHost;
@@ -9,8 +10,7 @@ using ServiceStack.Text;
 namespace ServiceStack.ServiceClient.Web
 {
     [Obsolete("Use JsonServiceClient")]
-    public class JsonRestClientAsync 
-        : IRestClientAsync
+    public class JsonRestClientAsync : IRestClientAsync
     {
         public const string ContentType = "application/json";
 
@@ -67,12 +67,22 @@ namespace ServiceStack.ServiceClient.Web
             this.client.SendAsync(HttpMethods.Get, GetUrl(relativeOrAbsoluteUrl), null, onSuccess, onError);
         }
 
+        public Task<TResponse> GetAsync<TResponse>(IReturn<TResponse> request)
+        {
+            throw new NotImplementedException();
+        }
+
         public void DeleteAsync<TResponse>(string relativeOrAbsoluteUrl, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             this.client.SendAsync(HttpMethods.Delete, GetUrl(relativeOrAbsoluteUrl), null, onSuccess, onError);
         }
 
         public void DeleteAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<TResponse> DeleteAsync<TResponse>(IReturn<TResponse> request)
         {
             throw new NotImplementedException();
         }
@@ -87,6 +97,11 @@ namespace ServiceStack.ServiceClient.Web
             this.client.SendAsync(HttpMethods.Post, GetUrl(relativeOrAbsoluteUrl), request, onSuccess, onError);
         }
 
+        public Task<TResponse> PostAsync<TResponse>(IReturn<TResponse> request)
+        {
+            throw new NotImplementedException();
+        }
+
         public void PutAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             throw new NotImplementedException();
@@ -95,6 +110,11 @@ namespace ServiceStack.ServiceClient.Web
         public void PutAsync<TResponse>(string relativeOrAbsoluteUrl, object request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             this.client.SendAsync(HttpMethods.Put, GetUrl(relativeOrAbsoluteUrl), request, onSuccess, onError);
+        }
+
+        public Task<TResponse> PutAsync<TResponse>(IReturn<TResponse> request)
+        {
+            throw new NotImplementedException();
         }
 
         public void CustomMethodAsync<TResponse>(string httpVerb, IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)

@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Funq;
 using ServiceStack.Common;
 using ServiceStack.Common.Utils;
@@ -265,6 +266,11 @@ namespace ServiceStack.ServiceInterface.Testing
                 }
             }
 
+            public Task<TResponse> SendAsync<TResponse>(IReturn<TResponse> request)
+            {
+                throw new NotImplementedException();
+            }
+
             private static void HandleException<TResponse>(Exception exception, Action<TResponse, Exception> onError)
             {
                 var response = (TResponse)typeof(TResponse).CreateInstance();
@@ -304,6 +310,11 @@ namespace ServiceStack.ServiceInterface.Testing
                 }
             }
 
+            public Task<TResponse> GetAsync<TResponse>(IReturn<TResponse> request)
+            {
+                throw new NotImplementedException();
+            }
+
             public void DeleteAsync<TResponse>(string relativeOrAbsoluteUrl, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
             {
                 try
@@ -318,6 +329,11 @@ namespace ServiceStack.ServiceInterface.Testing
             }
 
             public void DeleteAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<TResponse> DeleteAsync<TResponse>(IReturn<TResponse> request)
             {
                 throw new NotImplementedException();
             }
@@ -340,6 +356,11 @@ namespace ServiceStack.ServiceInterface.Testing
                 }
             }
 
+            public Task<TResponse> PostAsync<TResponse>(IReturn<TResponse> request)
+            {
+                throw new NotImplementedException();
+            }
+
             public void PutAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
             {
                 throw new NotImplementedException();
@@ -356,6 +377,11 @@ namespace ServiceStack.ServiceInterface.Testing
                 {
                     HandleException(ex, onError);
                 }
+            }
+
+            public Task<TResponse> PutAsync<TResponse>(IReturn<TResponse> request)
+            {
+                throw new NotImplementedException();
             }
 
             public void CustomMethodAsync<TResponse>(string httpVerb, IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)

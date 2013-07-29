@@ -247,55 +247,106 @@ namespace ServiceStack.ServiceClient.Web
 
         public async Task<TResponse> SendAsync<TResponse>(string httpMethod, string absoluteUrl, object request)
         {
-            var webRequest = CreateWebRequest(httpMethod, absoluteUrl, request);
-            var httpGetOrDeleteOrHead = (httpMethod == "GET" || httpMethod == "DELETE" || httpMethod == "HEAD");
-            if (!httpGetOrDeleteOrHead && request != null)
+            try
             {
-                webRequest.ContentType = ContentType;
-                using (var requestStream = await Task.Factory.FromAsync<Stream>(webRequest.BeginGetRequestStream, webRequest.EndGetRequestStream, null))
+                var webRequest = CreateWebRequest(httpMethod, absoluteUrl, request);
+                var httpGetOrDeleteOrHead = (httpMethod == "GET" || httpMethod == "DELETE" || httpMethod == "HEAD");
+                if (!httpGetOrDeleteOrHead && request != null)
                 {
-                    StreamSerializer(null, request, requestStream);
+                    webRequest.ContentType = ContentType;
+                    using (var requestStream = await Task.Factory.FromAsync<Stream>(webRequest.BeginGetRequestStream, webRequest.EndGetRequestStream, null))
+                    {
+                        StreamSerializer(null, request, requestStream);
 #if NETFX_CORE || WINDOWS_PHONE
                     requestStream.Flush();
                     requestStream.Dispose();
 #else
-                    requestStream.Close();
+                        requestStream.Close();
 #endif
+                    }
+                }
+
+                using (var webResponse = await Task.Factory.FromAsync<WebResponse>(webRequest.BeginGetResponse, webRequest.EndGetResponse, null))
+                using (var s = webResponse.GetResponseStream())
+                {
+                    try
+                    {
+                        TResponse response;
+                        if (typeof(TResponse) == typeof(Stream))
+                        {
+                            response = (TResponse)(object)s;
+                        }
+                        else
+                        {
+                            if (typeof(TResponse) == typeof(string))
+                            {
+                                using (var sr = new StreamReader(s))
+                                {
+                                    response = (TResponse)(object)sr.ReadToEnd();
+                                }
+                            }
+                            else if (typeof(TResponse) == typeof(byte[]))
+                            {
+                                using (var ms = new MemoryStream())
+                                {
+                                    s.CopyTo(ms);
+                                    response = (TResponse)(object)ms.ToArray();
+                                }
+                            }
+                            else
+                            {
+                                response = (TResponse)StreamDeserializer(typeof(TResponse), s);
+                            }
+                        }
+
+#if SILVERLIGHT && !WINDOWS_PHONE && !NETFX_CORE
+                    if (this.StoreCookies && this.ShareCookiesWithBrowser && !this.UseBrowserHttpHandling)
+                    {
+                        // browser cookies must be set on the ui thread
+                        System.Windows.Deployment.Current.Dispatcher.BeginInvoke(
+                            () =>
+                                {
+                                    var cookieHeader = this.CookieContainer.GetCookieHeader(new Uri(BaseUri));
+                                    System.Windows.Browser.HtmlPage.Document.Cookies = cookieHeader;
+                                });
+                    }
+#endif
+
+                        return response;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Debug(string.Format("Error Reading Response Error: {0}", ex.Message), ex);
+                        return default(TResponse);
+                    }
                 }
             }
-
-            using (var webResponse = await Task.Factory.FromAsync<WebResponse>(webRequest.BeginGetResponse, webRequest.EndGetResponse, null))
-            using (var s = webResponse.GetResponseStream())
+            catch (Exception ex)
             {
-                TResponse response;
-                if (typeof(TResponse) == typeof(Stream))
+                var webEx = ex as WebException;
+                if (webEx != null
+#if !SILVERLIGHT
+ && webEx.Status == WebExceptionStatus.ProtocolError
+#endif
+)
                 {
-                    response = (TResponse)(object)s;
+                    var errorResponse = ((HttpWebResponse)webEx.Response);
+                    Log.Error(webEx);
+                    Log.DebugFormat("Status Code : {0}", errorResponse.StatusCode);
+                    Log.DebugFormat("Status Description : {0}", errorResponse.StatusDescription);
+                    throw webEx;
                 }
-                else
-                {
-                    if (typeof(TResponse) == typeof(string))
-                    {
-                        using (var sr = new StreamReader(s))
-                        {
-                            response = (TResponse)(object)sr.ReadToEnd();
-                        }
-                    }
-                    else if (typeof(TResponse) == typeof(byte[]))
-                    {
-                        using (var ms = new MemoryStream())
-                        {
-                            s.CopyTo(ms);
-                            response = (TResponse)(object)ms.ToArray();
-                        }
-                    }
-                    else
-                    {
-                        response = (TResponse)StreamDeserializer(typeof(TResponse), s);
-                    }
 
+                var authEx = ex as AuthenticationException;
+                if (authEx != null)
+                {
+                    var customEx = WebRequestUtils.CreateCustomException(absoluteUrl, authEx);
+                    Log.Debug(string.Format("AuthenticationException: {0}", customEx.Message), customEx);
+                    throw authEx;
                 }
-                return response;
+
+                Log.Debug(string.Format("Exception Reading Response Error: {0}", ex.Message), ex);
+                throw; 
             }
         }
 
@@ -411,6 +462,7 @@ namespace ServiceStack.ServiceClient.Web
             Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
 #if SILVERLIGHT && !WINDOWS_PHONE && !NETFX_CORE
+            var webRequest = CreateWebRequest(httpMethod, absoluteUrl, request);
 #else
             _webRequest = CreateWebRequest(httpMethod, absoluteUrl, request);
 #endif

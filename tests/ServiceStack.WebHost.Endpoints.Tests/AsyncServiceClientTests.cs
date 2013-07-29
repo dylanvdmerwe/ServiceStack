@@ -37,7 +37,7 @@ namespace ServiceStack.WebHost.Endpoints.Tests
 		[Test]
 		public void Can_call_SendAsync_on_ServiceClient()
 		{
-			var jsonClient = new JsonServiceClient(ListeningOn);
+			var jsonClient = CreateServiceClient();
 
 			var request = new GetFactorial { ForNumber = 3 };
 			GetFactorialResponse response = null;
@@ -48,6 +48,32 @@ namespace ServiceStack.WebHost.Endpoints.Tests
 			Assert.That(response, Is.Not.Null, "No response received");
 			Assert.That(response.Result, Is.EqualTo(GetFactorialService.GetFactorial(request.ForNumber)));
 		}
+
+        [Test]
+        public async void Can_use_await_get_on_ServiceClient()
+        {
+            IServiceClient client = CreateServiceClient();
+
+            var request = new GetFactorial { ForNumber = 3 };
+            GetFactorialResponse response = null;
+            response = await client.GetAsync(request);
+
+            Assert.That(response, Is.Not.Null, "No response received");
+            Assert.That(response.Result, Is.EqualTo(GetFactorialService.GetFactorial(request.ForNumber)));
+        }
+
+        [Test]
+        public async void Can_use_await_post_on_ServiceClient()
+        {
+            IServiceClient client = CreateServiceClient();
+
+            var request = new GetFactorial { ForNumber = 8 };
+            GetFactorialResponse response = null;
+            response = await client.PostAsync(request);
+
+            Assert.That(response, Is.Not.Null, "No response received");
+            Assert.That(response.Result, Is.EqualTo(GetFactorialService.GetFactorial(request.ForNumber)));
+        }
 
 		[TestFixture]
 		public class JsonAsyncServiceClientTests : AsyncServiceClientTests
