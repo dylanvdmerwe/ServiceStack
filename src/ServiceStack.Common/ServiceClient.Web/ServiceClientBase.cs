@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Linq;
+using System.Threading.Tasks;
 #if !(MONOTOUCH || SILVERLIGHT)
 using System.Text;
 using System.Web;
@@ -822,6 +823,12 @@ namespace ServiceStack.ServiceClient.Web
             asyncClient.SendAsync(HttpMethods.Post, requestUri, request, onSuccess, onError);
         }
 
+        public virtual Task<TResponse> SendAsync<TResponse>(IReturn<TResponse> request)
+        {
+            var requestUri = this.SyncReplyBaseUri.WithTrailingSlash() + request.GetType().Name;
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Post, requestUri, null);
+        }
+
         public virtual void GetAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             GetAsync(request.ToUrl(HttpMethods.Get, Format), onSuccess, onError);
@@ -830,6 +837,11 @@ namespace ServiceStack.ServiceClient.Web
         public virtual void GetAsync<TResponse>(string relativeOrAbsoluteUrl, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             asyncClient.SendAsync(HttpMethods.Get, GetUrl(relativeOrAbsoluteUrl), null, onSuccess, onError);
+        }
+
+        public virtual Task<TResponse> GetAsync<TResponse>(IReturn<TResponse> request)
+        {
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Get, GetUrl(request.ToUrl(HttpMethods.Get, Format)), null);
         }
 
         public virtual void DeleteAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
@@ -842,6 +854,11 @@ namespace ServiceStack.ServiceClient.Web
             asyncClient.SendAsync(HttpMethods.Delete, GetUrl(relativeOrAbsoluteUrl), null, onSuccess, onError);
         }
 
+        public virtual Task<TResponse> DeleteAsync<TResponse>(IReturn<TResponse> request)
+        {
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Delete, GetUrl(request.ToUrl(HttpMethods.Delete, Format)), null);
+        }
+
         public virtual void PostAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             PostAsync(request.ToUrl(HttpMethods.Post, Format), request, onSuccess, onError);
@@ -850,6 +867,11 @@ namespace ServiceStack.ServiceClient.Web
         public virtual void PostAsync<TResponse>(string relativeOrAbsoluteUrl, object request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             asyncClient.SendAsync(HttpMethods.Post, GetUrl(relativeOrAbsoluteUrl), request, onSuccess, onError);
+        }
+
+        public virtual Task<TResponse> PostAsync<TResponse>(IReturn<TResponse> request)
+        {
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Post, GetUrl(request.ToUrl(HttpMethods.Post, Format)), request);
         }
 
         public virtual void PutAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
@@ -862,6 +884,11 @@ namespace ServiceStack.ServiceClient.Web
             asyncClient.SendAsync(HttpMethods.Put, GetUrl(relativeOrAbsoluteUrl), request, onSuccess, onError);
         }
 
+        public virtual Task<TResponse> PutAsync<TResponse>(IReturn<TResponse> request)
+        {
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Put, GetUrl(request.ToUrl(HttpMethods.Put, Format)), null);
+        }
+
         public virtual void PatchAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             PatchAsync(request.ToUrl(HttpMethods.Patch, Format), request, onSuccess, onError);
@@ -870,6 +897,11 @@ namespace ServiceStack.ServiceClient.Web
         public virtual void PatchAsync<TResponse>(string relativeOrAbsoluteUrl, object request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             asyncClient.SendAsync(HttpMethods.Patch, GetUrl(relativeOrAbsoluteUrl), request, onSuccess, onError);
+        }
+
+        public virtual Task<TResponse> PatchAsync<TResponse>(IReturn<TResponse> request)
+        {
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Patch, GetUrl(request.ToUrl(HttpMethods.Patch, Format)), null);
         }
 
         public virtual void CustomMethodAsync<TResponse>(string httpVerb, IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)

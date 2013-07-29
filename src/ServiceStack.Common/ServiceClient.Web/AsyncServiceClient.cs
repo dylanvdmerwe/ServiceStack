@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using ServiceStack.Logging;
 using ServiceStack.ServiceHost;
 using ServiceStack.Text;
@@ -244,6 +245,60 @@ namespace ServiceStack.ServiceClient.Web
         public bool ShareCookiesWithBrowser { get; set; }
 #endif
 
+        public async Task<TResponse> SendAsync<TResponse>(string httpMethod, string absoluteUrl, object request)
+        {
+            var webRequest = CreateWebRequest(httpMethod, absoluteUrl, request);
+            var httpGetOrDeleteOrHead = (httpMethod == "GET" || httpMethod == "DELETE" || httpMethod == "HEAD");
+            if (!httpGetOrDeleteOrHead && request != null)
+            {
+                webRequest.ContentType = ContentType;
+                using (var requestStream = await Task.Factory.FromAsync<Stream>(webRequest.BeginGetRequestStream, webRequest.EndGetRequestStream, null))
+                {
+                    StreamSerializer(null, request, requestStream);
+#if NETFX_CORE || WINDOWS_PHONE
+                    requestStream.Flush();
+                    requestStream.Dispose();
+#else
+                    requestStream.Close();
+#endif
+                }
+            }
+
+            using (var webResponse = await Task.Factory.FromAsync<WebResponse>(webRequest.BeginGetResponse, webRequest.EndGetResponse, null))
+            using (var s = webResponse.GetResponseStream())
+            {
+                TResponse response;
+                if (typeof(TResponse) == typeof(Stream))
+                {
+                    response = (TResponse)(object)s;
+                }
+                else
+                {
+                    if (typeof(TResponse) == typeof(string))
+                    {
+                        using (var sr = new StreamReader(s))
+                        {
+                            response = (TResponse)(object)sr.ReadToEnd();
+                        }
+                    }
+                    else if (typeof(TResponse) == typeof(byte[]))
+                    {
+                        using (var ms = new MemoryStream())
+                        {
+                            s.CopyTo(ms);
+                            response = (TResponse)(object)ms.ToArray();
+                        }
+                    }
+                    else
+                    {
+                        response = (TResponse)StreamDeserializer(typeof(TResponse), s);
+                    }
+
+                }
+                return response;
+            }
+        }
+
         public void SendAsync<TResponse>(string httpMethod, string absoluteUrl, object request,
             Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
@@ -268,8 +323,7 @@ namespace ServiceStack.ServiceClient.Web
         }
 #endif
 
-        private RequestState<TResponse> SendWebRequest<TResponse>(string httpMethod, string absoluteUrl, object request,
-            Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
+        private static string GetRequestUri(string httpMethod, string absoluteUrl, object request)
         {
             if (httpMethod == null) throw new ArgumentNullException("httpMethod");
 
@@ -285,13 +339,18 @@ namespace ServiceStack.ServiceClient.Web
                 }
             }
 
+            return requestUri;
+        }
+
+        private HttpWebRequest CreateWebRequest(string httpMethod, string absoluteUrl, object request)
+        {
 #if SILVERLIGHT && !WINDOWS_PHONE && !NETFX_CORE
 
             var creator = this.UseBrowserHttpHandling
                             ? System.Net.Browser.WebRequestCreator.BrowserHttp
                             : System.Net.Browser.WebRequestCreator.ClientHttp;
 
-            var webRequest = (HttpWebRequest) creator.Create(new Uri(requestUri));
+            var webRequest = (HttpWebRequest) creator.Create(new Uri(GetRequestUri(httpMethod, absoluteUrl, request)));
 
             if (StoreCookies && !UseBrowserHttpHandling)
             {
@@ -306,25 +365,61 @@ namespace ServiceStack.ServiceClient.Web
             }
 
 #else
-            _webRequest = (HttpWebRequest)WebRequest.Create(requestUri);
+            var webRequest = (HttpWebRequest)WebRequest.Create(GetRequestUri(httpMethod, absoluteUrl, request));
 
             if (StoreCookies)
             {
-                _webRequest.CookieContainer = CookieContainer;
+                webRequest.CookieContainer = CookieContainer;
             }
 #endif
 
 #if !SILVERLIGHT
             if (!DisableAutoCompression)
             {
-                _webRequest.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip,deflate");
-                _webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                webRequest.Headers.Add(HttpRequestHeader.AcceptEncoding, "gzip,deflate");
+                webRequest.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             }
 #endif
 
-            var requestState = new RequestState<TResponse> {
+            webRequest.Accept = string.Format("{0}, */*", ContentType);
+
+#if !SILVERLIGHT
+            webRequest.Method = httpMethod;
+#else
+            //Methods others than GET and POST are only supported by Client request creator, see
+            //http://msdn.microsoft.com/en-us/library/cc838250(v=vs.95).aspx
+            
+            if (this.UseBrowserHttpHandling && httpMethod != "GET" && httpMethod != "POST") 
+            {
+                webRequest.Method = "POST"; 
+                webRequest.Headers[HttpHeaders.XHttpMethodOverride] = httpMethod;
+            }
+            else
+            {
+                webRequest.Method = httpMethod;
+            }
+#endif
+
+            if (this.Credentials != null) webRequest.Credentials = this.Credentials;
+            if (this.AlwaysSendBasicAuthHeader) webRequest.AddBasicAuth(this.UserName, this.Password);
+
+            ApplyWebRequestFilters(webRequest);
+            return webRequest;
+        }
+
+        private RequestState<TResponse> SendWebRequest<TResponse>(string httpMethod, string absoluteUrl, object request,
+            Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
+        {
+#if SILVERLIGHT && !WINDOWS_PHONE && !NETFX_CORE
+#else
+            _webRequest = CreateWebRequest(httpMethod, absoluteUrl, request);
+#endif
+
+
+            var requestState = new RequestState<TResponse>
+            {
                 HttpMethod = httpMethod,
-                Url = requestUri,
+                Url = GetRequestUri(httpMethod, absoluteUrl, request),
 #if SILVERLIGHT && !WINDOWS_PHONE && !NETFX_CORE
                 WebRequest = webRequest,
 #else
@@ -352,29 +447,6 @@ namespace ServiceStack.ServiceClient.Web
             RequestState<TResponse> requestState, HttpWebRequest webRequest)
         {
             var httpGetOrDeleteOrHead = (httpMethod == "GET" || httpMethod == "DELETE" || httpMethod == "HEAD");
-            webRequest.Accept = string.Format("{0}, */*", ContentType);
-
-#if !SILVERLIGHT
-            webRequest.Method = httpMethod;
-#else
-            //Methods others than GET and POST are only supported by Client request creator, see
-            //http://msdn.microsoft.com/en-us/library/cc838250(v=vs.95).aspx
-            
-            if (this.UseBrowserHttpHandling && httpMethod != "GET" && httpMethod != "POST") 
-            {
-                webRequest.Method = "POST"; 
-                webRequest.Headers[HttpHeaders.XHttpMethodOverride] = httpMethod;
-            }
-            else
-            {
-                webRequest.Method = httpMethod;
-            }
-#endif
-
-            if (this.Credentials != null) webRequest.Credentials = this.Credentials;
-            if (this.AlwaysSendBasicAuthHeader) webRequest.AddBasicAuth(this.UserName, this.Password);
-
-            ApplyWebRequestFilters(webRequest);
 
             try
             {
@@ -601,7 +673,8 @@ namespace ServiceStack.ServiceClient.Web
                 Log.DebugFormat("Status Code : {0}", errorResponse.StatusCode);
                 Log.DebugFormat("Status Description : {0}", errorResponse.StatusDescription);
 
-                var serviceEx = new WebServiceException(errorResponse.StatusDescription) {
+                var serviceEx = new WebServiceException(errorResponse.StatusDescription)
+                {
                     StatusCode = (int)errorResponse.StatusCode,
                 };
 
@@ -629,7 +702,8 @@ namespace ServiceStack.ServiceClient.Web
                 {
                     // Oh, well, we tried
                     Log.Debug(string.Format("WebException Reading Response Error: {0}", innerEx.Message), innerEx);
-                    requestState.HandleError(default(TResponse), new WebServiceException(errorResponse.StatusDescription, innerEx) {
+                    requestState.HandleError(default(TResponse), new WebServiceException(errorResponse.StatusDescription, innerEx)
+                    {
                         StatusCode = (int)errorResponse.StatusCode,
                     });
                 }

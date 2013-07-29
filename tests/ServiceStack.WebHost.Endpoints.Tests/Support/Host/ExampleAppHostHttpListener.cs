@@ -25,7 +25,7 @@ namespace ServiceStack.WebHost.Endpoints.Tests.Support.Host
 
 	[Route("/factorial/{ForNumber}")]
 	[DataContract]
-	public class GetFactorial
+	public class GetFactorial : IReturn<GetFactorialResponse>
 	{
 		[DataMember]
 		public long ForNumber { get; set; }
