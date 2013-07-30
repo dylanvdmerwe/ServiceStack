@@ -247,6 +247,20 @@ namespace ServiceStack.ServiceClient.Web
 
         public async Task<TResponse> SendAsync<TResponse>(string httpMethod, string absoluteUrl, object request)
         {
+            var sendTask = SendAsyncAwait<TResponse>(httpMethod, absoluteUrl, request);
+            var t = await Task.WhenAny(sendTask, Task.Delay(Timeout.GetValueOrDefault(DefaultTimeout)));
+            if (t == sendTask)
+            {
+                return await sendTask;
+            }
+            else
+            {
+                throw new WebException("The request timed out", WebExceptionStatus.Timeout);
+            }
+        }
+
+        private async Task<TResponse> SendAsyncAwait<TResponse>(string httpMethod, string absoluteUrl, object request)
+        {
             try
             {
                 var webRequest = CreateWebRequest(httpMethod, absoluteUrl, request);

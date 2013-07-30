@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Threading;
 using NUnit.Framework;
 using ServiceStack.Service;
@@ -75,12 +76,31 @@ namespace ServiceStack.WebHost.Endpoints.Tests
             Assert.That(response.Result, Is.EqualTo(GetFactorialService.GetFactorial(request.ForNumber)));
         }
 
+        [Test]
+        public async void Can_use_await_post_timeout_on_ServiceClient()
+        {
+            JsonServiceClient client = new JsonServiceClient(ListeningOn);
+            client.Timeout = TimeSpan.FromSeconds(0);
+            
+            var request = new GetFactorial { ForNumber = 999 };
+            GetFactorialResponse response = null;
+            try
+            {
+                response = await client.PostAsync(request);
+            }
+            catch (Exception ex)
+            {
+                Assert.That(ex is WebException);
+                Assert.That(((WebException)ex).Status, Is.EqualTo(WebExceptionStatus.Timeout));
+            }
+        }
+
 		[TestFixture]
 		public class JsonAsyncServiceClientTests : AsyncServiceClientTests
 		{
 			protected override IServiceClient CreateServiceClient()
 			{
-				return new JsonServiceClient(ListeningOn);
+			    return new JsonServiceClient(ListeningOn);
 			}
 		}
 
