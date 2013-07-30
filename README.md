@@ -1,3 +1,31 @@
+Async/Awaitable Client Support
+=========================== 
+
+Due to Xamarin now supporting full async/await functionality from .NET 4.5 (Xamarin.iOS 6.4+ and Xamarin.Android 4.8+) 
+I had a direct need to expose awaitable methods in ServiceStack. 
+
+
+
+### Supported and tested platforms:
+ * Xamarin.iPhone 6.4+
+ * Xamarin.Android 4.8+
+ * Windows Phone 8
+
+### Example usage:
+```csharp
+        public async void TestAwaitPost()
+        {
+            JsonServiceClient client = new JsonServiceClient("http://localhost:82/");
+
+            var request = new GetFactorial { ForNumber = 3 };
+            GetFactorialResponse response = null;
+            response = await client.PostAsync(request);
+            Console.WriteLine(response.Result); // 6
+        }
+```
+
+---------------------
+
 See [www.servicestack.net](http://www.servicestack.net/) for an overview.
 
 Join the [ServiceStack Google+ Community](https://plus.google.com/u/0/communities/112445368900682590445) or
