@@ -268,7 +268,7 @@ namespace ServiceStack.ServiceClient.Web
                 if (!httpGetOrDeleteOrHead && request != null)
                 {
                     webRequest.ContentType = ContentType;
-                    using (var requestStream = await Task.Factory.FromAsync<Stream>(webRequest.BeginGetRequestStream, webRequest.EndGetRequestStream, null))
+                    using (var requestStream = await Task.Factory.FromAsync<Stream>(webRequest.BeginGetRequestStream, webRequest.EndGetRequestStream, null).ConfigureAwait(false))
                     {
                         StreamSerializer(null, request, requestStream);
 #if NETFX_CORE || WINDOWS_PHONE
@@ -277,10 +277,10 @@ namespace ServiceStack.ServiceClient.Web
 #else
                         requestStream.Close();
 #endif
-                    }
+                    } 
                 }
 
-                using (var webResponse = await Task.Factory.FromAsync<WebResponse>(webRequest.BeginGetResponse, webRequest.EndGetResponse, null))
+                using (var webResponse = await Task.Factory.FromAsync<WebResponse>(webRequest.BeginGetResponse, webRequest.EndGetResponse, null).ConfigureAwait(false))
                 using (var s = webResponse.GetResponseStream())
                 {
                     try
@@ -332,8 +332,8 @@ namespace ServiceStack.ServiceClient.Web
                     {
                         Log.Debug(string.Format("Error Reading Response Error: {0}", ex.Message), ex);
                         return default(TResponse);
-                    }
-                }
+                    } 
+                } 
             }
             catch (Exception ex)
             {

@@ -812,6 +812,7 @@ namespace ServiceStack.ServiceClient.Web
             DownloadBytes(httpMethod, requestUri, request);
         }
 
+        #region Send
         public virtual void SendAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             SendAsync((object)request, onSuccess, onError);
@@ -826,9 +827,11 @@ namespace ServiceStack.ServiceClient.Web
         public virtual Task<TResponse> SendAsync<TResponse>(IReturn<TResponse> request)
         {
             var requestUri = this.SyncReplyBaseUri.WithTrailingSlash() + request.GetType().Name;
-            return asyncClient.SendAsync<TResponse>(HttpMethods.Post, requestUri, null);
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Post, requestUri, (object)request);
         }
+        #endregion
 
+        #region GET
         public virtual void GetAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             GetAsync(request.ToUrl(HttpMethods.Get, Format), onSuccess, onError);
@@ -843,7 +846,9 @@ namespace ServiceStack.ServiceClient.Web
         {
             return asyncClient.SendAsync<TResponse>(HttpMethods.Get, GetUrl(request.ToUrl(HttpMethods.Get, Format)), null);
         }
+        #endregion
 
+        #region DELETE
         public virtual void DeleteAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             DeleteAsync(request.ToUrl(HttpMethods.Delete, Format), onSuccess, onError);
@@ -858,7 +863,9 @@ namespace ServiceStack.ServiceClient.Web
         {
             return asyncClient.SendAsync<TResponse>(HttpMethods.Delete, GetUrl(request.ToUrl(HttpMethods.Delete, Format)), null);
         }
+        #endregion
 
+        #region POST
         public virtual void PostAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             PostAsync(request.ToUrl(HttpMethods.Post, Format), request, onSuccess, onError);
@@ -871,9 +878,11 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual Task<TResponse> PostAsync<TResponse>(IReturn<TResponse> request)
         {
-            return asyncClient.SendAsync<TResponse>(HttpMethods.Post, GetUrl(request.ToUrl(HttpMethods.Post, Format)), request);
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Post, GetUrl(request.ToUrl(HttpMethods.Post, Format)), (object)request);
         }
+        #endregion
 
+        #region PUT
         public virtual void PutAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             PutAsync(request.ToUrl(HttpMethods.Put, Format), request, onSuccess, onError);
@@ -886,9 +895,11 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual Task<TResponse> PutAsync<TResponse>(IReturn<TResponse> request)
         {
-            return asyncClient.SendAsync<TResponse>(HttpMethods.Put, GetUrl(request.ToUrl(HttpMethods.Put, Format)), null);
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Put, GetUrl(request.ToUrl(HttpMethods.Put, Format)), (object)request);
         }
+        #endregion
 
+        #region PATCH
         public virtual void PatchAsync<TResponse>(IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
             PatchAsync(request.ToUrl(HttpMethods.Patch, Format), request, onSuccess, onError);
@@ -901,8 +912,9 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual Task<TResponse> PatchAsync<TResponse>(IReturn<TResponse> request)
         {
-            return asyncClient.SendAsync<TResponse>(HttpMethods.Patch, GetUrl(request.ToUrl(HttpMethods.Patch, Format)), null);
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Patch, GetUrl(request.ToUrl(HttpMethods.Patch, Format)), (object)request);
         }
+        #endregion
 
         public virtual void CustomMethodAsync<TResponse>(string httpVerb, IReturn<TResponse> request, Action<TResponse> onSuccess, Action<TResponse, Exception> onError)
         {
@@ -1050,11 +1062,11 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual TResponse PostFileWithRequest<TResponse>(string relativeOrAbsoluteUrl, FileInfo fileToUpload, object request)
         {
-			using (FileStream fileStream = fileToUpload.OpenRead())
-			{
-				return PostFileWithRequest<TResponse>(relativeOrAbsoluteUrl, fileStream, fileToUpload.Name, request);
+            using (FileStream fileStream = fileToUpload.OpenRead())
+            {
+                return PostFileWithRequest<TResponse>(relativeOrAbsoluteUrl, fileStream, fileToUpload.Name, request);
 
-			}
+            }
         }
 
         public virtual TResponse PostFileWithRequest<TResponse>(string relativeOrAbsoluteUrl, Stream fileToUpload, string fileName, object request)
@@ -1125,10 +1137,10 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual TResponse PostFile<TResponse>(string relativeOrAbsoluteUrl, FileInfo fileToUpload, string mimeType)
         {
-			using (FileStream fileStream = fileToUpload.OpenRead())
-			{
-				return PostFile<TResponse>(relativeOrAbsoluteUrl, fileStream, fileToUpload.Name, mimeType);
-			}
+            using (FileStream fileStream = fileToUpload.OpenRead())
+            {
+                return PostFile<TResponse>(relativeOrAbsoluteUrl, fileStream, fileToUpload.Name, mimeType);
+            }
         }
 
         public virtual TResponse PostFile<TResponse>(string relativeOrAbsoluteUrl, Stream fileToUpload, string fileName, string mimeType)
