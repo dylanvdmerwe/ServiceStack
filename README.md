@@ -7,7 +7,7 @@ I had a direct need to expose awaitable methods in ServiceStack.
 
 
 ### Supported and tested platforms:
- * Xamarin.iPhone 6.4+
+ * Xamarin.iPhone 6.4+ (currently only on simulator - working on JIT issues on device)
  * Xamarin.Android 4.8+
  * Windows Phone 8
 
