@@ -1,15 +1,18 @@
 Async/Awaitable Client Support
 =========================== 
 
-Due to Xamarin now supporting full async/await functionality from .NET 4.5 (Xamarin.iOS 6.4+ and Xamarin.Android 4.8+) 
-I had a direct need to expose awaitable methods in ServiceStack. 
+Xamarin now supports full async/await functionality from .NET 4.5 which allows for some amazing client-side code.
+ServiceStack libraries now support cross-platform awaitable operations!
 
-
+* Json
+* Jsv
+* Xml
 
 ### Supported and tested platforms:
- * Xamarin.iPhone 6.4+
+ * Xamarin.iPhone 6.4+ (currently only on simulator - JIT issues caused on device will be resolved in future release of Mono runtime soon)
  * Xamarin.Android 4.8+
  * Windows Phone 8
+
 
 ### Example usage:
 ```csharp
