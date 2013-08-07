@@ -80,7 +80,7 @@ namespace ServiceStack.WebHost.Endpoints.Tests
         public async void Can_use_await_post_timeout_on_ServiceClient()
         {
             JsonServiceClient client = new JsonServiceClient(ListeningOn);
-            client.Timeout = TimeSpan.FromSeconds(0);
+            client.Timeout = TimeSpan.FromSeconds(2);
             
             var request = new GetFactorial { ForNumber = 999 };
             GetFactorialResponse response = null;

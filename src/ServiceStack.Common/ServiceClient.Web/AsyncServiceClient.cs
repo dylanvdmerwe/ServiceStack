@@ -247,23 +247,29 @@ namespace ServiceStack.ServiceClient.Web
 
         public async Task<TResponse> SendAsync<TResponse>(string httpMethod, string absoluteUrl, object request)
         {
-            var sendTask = SendAsyncAwait<TResponse>(httpMethod, absoluteUrl, request);
-            var t = await Task.WhenAny(sendTask, Task.Delay(Timeout.GetValueOrDefault(DefaultTimeout)));
+            var webRequest = CreateWebRequest(httpMethod, absoluteUrl, request);
+            var sendTask = SendAsyncAwait<TResponse>(webRequest, httpMethod, absoluteUrl, request);
+            var t = await Task.WhenAny(sendTask, Task.Delay(Timeout.GetValueOrDefault(DefaultTimeout))).ConfigureAwait(false);
             if (t == sendTask)
             {
-                return await sendTask;
+                return await sendTask.ConfigureAwait(false);
             }
             else
             {
+                try
+                {
+                    webRequest.Abort();
+                }
+                catch {}
+            
                 throw new WebException("The request timed out", WebExceptionStatus.Timeout);
             }
         }
 
-        private async Task<TResponse> SendAsyncAwait<TResponse>(string httpMethod, string absoluteUrl, object request)
+        private async Task<TResponse> SendAsyncAwait<TResponse>(HttpWebRequest webRequest, string httpMethod, string absoluteUrl, object request)
         {
             try
             {
-                var webRequest = CreateWebRequest(httpMethod, absoluteUrl, request);
                 var httpGetOrDeleteOrHead = (httpMethod == "GET" || httpMethod == "DELETE" || httpMethod == "HEAD");
                 if (!httpGetOrDeleteOrHead && request != null)
                 {
