@@ -8,8 +8,8 @@ ServiceStack libraries now support cross-platform awaitable operations!
 * Jsv
 * Xml
 
-### Supported and tested platforms:
- * Xamarin.iPhone 6.4+ (currently only on simulator - JIT issues caused on device will be resolved in future release of Mono runtime soon)
+### Tested platforms:
+ * Xamarin.iOS 7.0+ 
  * Xamarin.Android 4.8+
  * Windows Phone 8
 
