@@ -289,6 +289,7 @@ namespace ServiceStack.ServiceClient.Web
                 using (var webResponse = await Task.Factory.FromAsync<WebResponse>(webRequest.BeginGetResponse, webRequest.EndGetResponse, null).ConfigureAwait(false))
                 using (var s = webResponse.GetResponseStream())
                 {
+                    ApplyWebResponseFilters(webResponse);
                     try
                     {
                         TResponse response;
