@@ -31,6 +31,11 @@ namespace ServiceStack.WebHost.Endpoints.Tests.Support.Host
 		public long ForNumber { get; set; }
 	}
 
+    public class GetFactorial2 : IReturn<GetFactorialResponse>
+    {
+        public long ForNumber { get; set; }
+    }
+
 	[DataContract]
 	public class GetFactorialResponse
 	{

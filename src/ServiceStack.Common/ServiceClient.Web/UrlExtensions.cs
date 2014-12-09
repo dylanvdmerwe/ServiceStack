@@ -27,7 +27,7 @@ namespace ServiceStack.ServiceClient.Web
         private static readonly ConcurrentDictionary<Type, List<RestRoute>> routesCache =
             new ConcurrentDictionary<Type, List<RestRoute>>();
 
-        public static string ToUrl(this IReturn request, string httpMethod, string formatFallbackToPredefinedRoute = null)
+        public static string ToUrl(this IReturn request, string httpMethod, string formatFallbackToPredefinedRoute = null, string replyBaseUri = "/syncreply/")
         {
             httpMethod = httpMethod.ToUpper();
 
@@ -40,7 +40,7 @@ namespace ServiceStack.ServiceClient.Web
                         + "(Note: The automatic route selection only works with [Route] attributes on the request DTO and"
                         + "not with routes registered in the IAppHost!)");
 
-                var predefinedRoute = "/{0}/syncreply/{1}".Fmt(formatFallbackToPredefinedRoute, requestType.Name);
+                var predefinedRoute = "/{0}{1}{2}".Fmt(formatFallbackToPredefinedRoute, replyBaseUri, requestType.Name);
                 if (httpMethod == "GET" || httpMethod == "DELETE" || httpMethod == "OPTIONS" || httpMethod == "HEAD")
                 {
                     var queryProperties = RestRoute.GetQueryProperties(request.GetType());

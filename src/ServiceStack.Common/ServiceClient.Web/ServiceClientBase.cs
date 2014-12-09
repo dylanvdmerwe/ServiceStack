@@ -844,7 +844,7 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual Task<TResponse> GetAsync<TResponse>(IReturn<TResponse> request)
         {
-            return asyncClient.SendAsync<TResponse>(HttpMethods.Get, GetUrl(request.ToUrl(HttpMethods.Get, Format)), null);
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Get, GetUrl(request.ToUrl(HttpMethods.Get, Format, replyPath)), null);
         }
         #endregion
 
@@ -861,7 +861,7 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual Task<TResponse> DeleteAsync<TResponse>(IReturn<TResponse> request)
         {
-            return asyncClient.SendAsync<TResponse>(HttpMethods.Delete, GetUrl(request.ToUrl(HttpMethods.Delete, Format)), null);
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Delete, GetUrl(request.ToUrl(HttpMethods.Delete, Format, replyPath)), null);
         }
         #endregion
 
@@ -878,7 +878,7 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual Task<TResponse> PostAsync<TResponse>(IReturn<TResponse> request)
         {
-            return asyncClient.SendAsync<TResponse>(HttpMethods.Post, GetUrl(request.ToUrl(HttpMethods.Post, Format)), (object)request);
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Post, GetUrl(request.ToUrl(HttpMethods.Post, Format, replyPath)), (object)request);
         }
         #endregion
 
@@ -895,7 +895,7 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual Task<TResponse> PutAsync<TResponse>(IReturn<TResponse> request)
         {
-            return asyncClient.SendAsync<TResponse>(HttpMethods.Put, GetUrl(request.ToUrl(HttpMethods.Put, Format)), (object)request);
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Put, GetUrl(request.ToUrl(HttpMethods.Put, Format, replyPath)), (object)request);
         }
         #endregion
 
@@ -912,7 +912,7 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual Task<TResponse> PatchAsync<TResponse>(IReturn<TResponse> request)
         {
-            return asyncClient.SendAsync<TResponse>(HttpMethods.Patch, GetUrl(request.ToUrl(HttpMethods.Patch, Format)), (object)request);
+            return asyncClient.SendAsync<TResponse>(HttpMethods.Patch, GetUrl(request.ToUrl(HttpMethods.Patch, Format, replyPath)), (object)request);
         }
         #endregion
 
@@ -1052,7 +1052,7 @@ namespace ServiceStack.ServiceClient.Web
 
         public virtual HttpWebResponse Head(IReturn request)
         {
-            return Send<HttpWebResponse>(HttpMethods.Head, request.ToUrl(HttpMethods.Head), request);
+            return Send<HttpWebResponse>(HttpMethods.Head, request.ToUrl(HttpMethods.Head, Format), request);
         }
 
         public virtual HttpWebResponse Head(string relativeOrAbsoluteUrl)

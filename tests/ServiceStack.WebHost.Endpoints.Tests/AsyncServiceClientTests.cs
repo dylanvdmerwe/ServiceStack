@@ -53,9 +53,24 @@ namespace ServiceStack.WebHost.Endpoints.Tests
         [Test]
         public async void Can_use_await_get_on_ServiceClient()
         {
-            IServiceClient client = CreateServiceClient();
+            var client = CreateServiceClient();
 
             var request = new GetFactorial { ForNumber = 3 };
+            GetFactorialResponse response = null;
+            response = await client.GetAsync(request);
+
+            Assert.That(response, Is.Not.Null, "No response received");
+            Assert.That(response.Result, Is.EqualTo(GetFactorialService.GetFactorial(request.ForNumber)));
+        }
+
+
+        [Test]
+        public async void Can_use_await_get_on_ServiceClient_NewRoute()
+        {
+            JsonServiceClient client = (JsonServiceClient)CreateServiceClient();
+            client.UseNewPredefinedRoutes = true;
+
+            var request = new GetFactorial2 { ForNumber = 3 };
             GetFactorialResponse response = null;
             response = await client.GetAsync(request);
 
